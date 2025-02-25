@@ -1,4 +1,25 @@
-import request from '@/utils/request'
+import axios from 'axios'
+
 export function checkSSH(sshInfo) {
-    return request.get(`/check?sshInfo=${sshInfo}`)
+    return axios({
+        url: '/check',
+        method: 'get',
+        params: {
+            sshInfo: sshInfo
+        }
+    })
+}
+
+export function getDefaultConfig() {
+    return axios({
+        url: '/api/default-config',
+        method: 'get'
+    })
+}
+
+export function getServerList() {
+    return axios({
+        url: '/api/server-list',
+        method: 'get'
+    })
 }

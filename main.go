@@ -2,15 +2,18 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/fs"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 	"webssh/controller"
+	"webssh/core"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -57,6 +60,8 @@ func init() {
 		fmt.Printf("GitVersion: %s\n\n", gitVersion)
 		os.Exit(0)
 	}
+	
+	// 首先检查命令行参数
 	if *authInfo != "" {
 		accountInfo := strings.Split(*authInfo, ":")
 		if len(accountInfo) != 2 || accountInfo[0] == "" || accountInfo[1] == "" {
@@ -64,6 +69,14 @@ func init() {
 			os.Exit(0)
 		}
 		username, password = accountInfo[0], accountInfo[1]
+	} else {
+		// 如果命令行参数没有设置，则检查配置文件
+		authConfig := core.GetAuthConfig()
+		if authConfig.Enable && authConfig.Username != "" && authConfig.Password != "" {
+			username = authConfig.Username
+			password = authConfig.Password
+			log.Println("Using authentication settings from config file")
+		}
 	}
 }
 
@@ -87,11 +100,50 @@ func staticRouter(router *gin.Engine) {
 	router.StaticFS("/static", http.FS(staticFs))
 }
 
+func getDefaultConfig(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	
+	// 获取默认配置
+	defaultConfig := core.GetDefaultSSHConfig()
+	
+	// 转换为JSON
+	jsonData, err := json.Marshal(defaultConfig)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	// 返回JSON数据
+	w.Write(jsonData)
+}
+
 func main() {
 	server := gin.Default()
 	server.SetTrustedProxies(nil)
 	server.Use(gzip.Gzip(gzip.DefaultCompression))
 	staticRouter(server)
+	
+	// 添加获取默认配置的API路由
+	server.GET("/api/default-config", func(c *gin.Context) {
+		// 获取默认配置
+		defaultConfig := core.GetDefaultSSHConfig()
+		
+		// 添加日志
+		log.Printf("Returning default config: %+v\n", defaultConfig)
+		
+		// 返回JSON数据
+		c.JSON(200, defaultConfig)
+	})
+	
+	// 添加获取服务器列表的API路由
+	server.GET("/api/server-list", func(c *gin.Context) {
+		// 获取服务器列表
+		serverList := core.GetServerList()
+		
+		// 返回JSON数据
+		c.JSON(200, serverList)
+	})
+	
 	server.GET("/term", func(c *gin.Context) {
 		controller.TermWs(c, time.Duration(timeout)*time.Minute)
 	})

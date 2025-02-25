@@ -9,5 +9,15 @@ export default {
     unlockClose: 'please unlock to close tab',
     clickSelectFile: 'click to select upload file',
     clickSelectFolder: 'click to select upload folder',
-    uploadFinish: ' upload finish'
+    uploadFinish: ' upload finish',
+    Password: 'Password',
+    PrivateKey: 'Private Key',
+    KeyPassphrase: 'Key Passphrase',
+    EnterPassphrase: 'Enter passphrase if your key is protected',
+    SelectFile: 'Select File',
+    SSHAuthHelp: 'SSH Authentication Help',
+    UploadKey: 'Upload Private Key',
+    Servers: 'Servers',
+    History: 'History',
+    Connect: 'Connect'
 }

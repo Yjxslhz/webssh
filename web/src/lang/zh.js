@@ -21,6 +21,10 @@ export default {
     Connect: '连接',
     password: '密码',
     privateKey: '密钥',
+    Password: '密码',
+    PrivateKey: '私钥',
+    KeyPassphrase: '私钥密码',
+    EnterPassphrase: '如果私钥有密码保护，请输入密码',
     hostTip: '请输入远程host地址',
     portTip: '请输入端口',
     nameTip: '请输入用户名',
@@ -37,5 +41,8 @@ export default {
     clickSelectFile: '点击选择文件',
     clickSelectFolder: '点击选择文件夹',
     uploadFile: '上传文件',
-    uploadFolder: '上传文件夹'
+    uploadFolder: '上传文件夹',
+    SSHAuthHelp: 'SSH认证帮助',
+    UploadKey: '上传私钥',
+    Servers: '服务器列表'
 }

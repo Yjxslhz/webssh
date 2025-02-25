@@ -41,18 +41,50 @@ func (sclient *SSHClient) GenerateClient() error {
 		err          error
 	)
 	auth = make([]ssh.AuthMethod, 0)
+	
+	// 根据登录类型选择认证方式
 	if sclient.LoginType == 0 {
+		// 密码认证
 		auth = append(auth, ssh.Password(sclient.Password))
 	} else {
-		if signer, err := ssh.ParsePrivateKey([]byte(sclient.Password)); err != nil {
-			return err
+		// 私钥认证
+		var signer ssh.Signer
+		
+		// 检查是否有密钥密码
+		log.Printf("KeyPassphrase: '%s', LoginType: %d", sclient.KeyPassphrase, sclient.LoginType)
+		
+		// 尝试先用密码解析私钥
+		if sclient.KeyPassphrase != "" {
+			// 使用密码解析私钥
+			log.Println("Attempting to parse private key with passphrase")
+			signer, err = ssh.ParsePrivateKeyWithPassphrase([]byte(sclient.Password), []byte(sclient.KeyPassphrase))
+			if err != nil {
+				log.Printf("Failed to parse private key with passphrase: %v", err)
+				return fmt.Errorf("failed to parse private key with passphrase: %v", err)
+			}
 		} else {
-			auth = append(auth, ssh.PublicKeys(signer))
+			// 尝试解析没有密码的私钥
+			log.Println("Attempting to parse private key without passphrase")
+			signer, err = ssh.ParsePrivateKey([]byte(sclient.Password))
+			if err != nil {
+				// 如果解析失败，检查是否是因为私钥有密码保护
+				if strings.Contains(err.Error(), "private key is passphrase protected") || 
+				   strings.Contains(err.Error(), "cannot decode encrypted private keys") {
+					log.Println("Private key is passphrase protected, but no passphrase provided")
+					return fmt.Errorf("private key is passphrase protected, please provide the passphrase")
+				}
+				log.Printf("Failed to parse private key: %v", err)
+				return fmt.Errorf("failed to parse private key: %v", err)
+			}
 		}
+		
+		auth = append(auth, ssh.PublicKeys(signer))
 	}
+	
 	config = ssh.Config{
 		Ciphers: []string{"aes128-ctr", "aes192-ctr", "aes256-ctr", "aes128-gcm@openssh.com", "arcfour256", "arcfour128", "aes128-cbc", "3des-cbc", "aes192-cbc", "aes256-cbc"},
 	}
+	
 	clientConfig = &ssh.ClientConfig{
 		User:    sclient.Username,
 		Auth:    auth,
@@ -62,6 +94,7 @@ func (sclient *SSHClient) GenerateClient() error {
 			return nil
 		},
 	}
+	
 	addr = fmt.Sprintf("%s:%d", sclient.IPAddress, sclient.Port)
 	if client, err = ssh.Dial("tcp", addr, clientConfig); err != nil {
 		return err

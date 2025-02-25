@@ -30,6 +30,30 @@ Usage of ./webssh_linux_amd64:
 +---------+   websocket  +--------+    ssh    +-----------+
 ```
 
+## 配置文件
+在可执行文件同目录下创建 `config.json` 文件，可以设置默认的SSH连接信息：
+
+```json
+{
+    "default_ssh": {
+        "host": "192.168.1.100",
+        "port": 22,
+        "username": "root",
+        "password": "",
+        "login_type": 0,
+        "key_passphrase": ""
+    }
+}
+```
+
+配置说明：
+- `host`: 默认SSH主机地址
+- `port`: 默认SSH端口
+- `username`: 默认用户名
+- `password`: 默认密码（可留空）
+- `login_type`: 登录类型（0: 密码认证, 1: 私钥认证）
+- `key_passphrase`: 私钥密码（如果私钥有密码保护）
+
 ## 运行
 1. 下载[releases](https://github.com/Jrohy/webssh/releases)里不同平台的包来执行即可  
 

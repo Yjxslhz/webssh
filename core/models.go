@@ -50,22 +50,33 @@ func (w *wsOutput) Write(p []byte) (int, error) {
 
 // SSHClient 结构体
 type SSHClient struct {
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	IPAddress string `json:"ipaddress"`
-	Port      int    `json:"port"`
-	LoginType int    `json:"logintype"`
-	Client    *ssh.Client
-	Sftp      *sftp.Client
-	StdinPipe io.WriteCloser
-	Session   *ssh.Session
+	Username      string `json:"username"`
+	Password      string `json:"password"`
+	IPAddress     string `json:"ipaddress"`
+	Port          int    `json:"port"`
+	LoginType     int    `json:"logintype"`
+	KeyPassphrase string `json:"keypassphrase"`
+	Client        *ssh.Client
+	Sftp          *sftp.Client
+	StdinPipe     io.WriteCloser
+	Session       *ssh.Session
 }
 
 // NewSSHClient 返回默认ssh信息
 func NewSSHClient() SSHClient {
 	client := SSHClient{}
-	client.Username = "root"
-	client.Port = 22
+	
+	// 从配置文件加载默认设置
+	defaultConfig := GetDefaultSSHConfig()
+	
+	// 设置默认值
+	client.Username = defaultConfig.Username
+	client.Port = defaultConfig.Port
+	client.IPAddress = defaultConfig.Host
+	client.Password = defaultConfig.Password
+	client.LoginType = defaultConfig.LoginType
+	client.KeyPassphrase = defaultConfig.KeyPassphrase
+	
 	return client
 }
 
